@@ -249,7 +249,7 @@
             <select id="quickFetch" class="btn-select">
               <option value="">自動帶入 ▼</option>
               <option value="TX">台指期</option>
-              <option value="NQ">那斯達克期貨</option>
+              <option value="NQ">納斯達克期貨</option>
               <option value="ES">標普500期貨</option>
             </select>
           </div>
@@ -265,7 +265,6 @@
     </div>
 
     <script>
-      // 在這裡貼上您的 Google 試算表發布的 CSV 網址
       const GOOGLE_SHEET_CSV_URL =
         "https://docs.google.com/spreadsheets/d/e/2PACX-1vSnYJSfjaXfVeuMEPQZOCrsF7MgXxjApdoP9AFnWlVHq2IrE0-EUO-oRHojhPq5wlIjtdoSUYA7XqsC/pub?output=csv";
 
@@ -412,7 +411,6 @@
           let foundPrice = null;
           for (let row of rows) {
             const cols = row.split(",");
-            // 確保比對時忽略前後空白字元
             if (cols.length >= 2 && cols[0].trim() === type) {
               foundPrice = parseFloat(cols[1].trim());
               break;
@@ -431,7 +429,7 @@
           alert("讀取失敗，請確認試算表已正確發布為 CSV 且網址無誤。");
         } finally {
           targetIndexInput.placeholder = originalPlaceholder;
-          e.target.value = "";
+          // 已移除 e.target.value = ""; 讓選單維持在使用者的選擇
           quickFetch.disabled = false;
         }
       });
