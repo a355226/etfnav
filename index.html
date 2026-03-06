@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ETF 淨值計算機</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        background-color: #f4f4f9;
+        color: #333;
+        display: flex;
+        justify-content: center;
+        padding: 2rem;
+        margin: 0;
+      }
+      .container {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        padding: 2rem;
+        width: 100%;
+        max-width: 400px;
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+        text-align: center;
+        color: #2c3e50;
+      }
+      .form-group {
+        margin-bottom: 1rem;
+      }
+      label {
+        display: block;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+        color: #555;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-sizing: border-box;
+        font-size: 1rem;
+        transition: border-color 0.2s;
+      }
+      input:focus,
+      select:focus {
+        outline: none;
+        border-color: #3498db;
+      }
+      button {
+        width: 100%;
+        padding: 0.75rem;
+        background-color: #3498db;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin-top: 0.5rem;
+      }
+      button:hover {
+        background-color: #2980b9;
+      }
+      .btn-danger {
+        background-color: #e74c3c;
+      }
+      .btn-danger:hover {
+        background-color: #c0392b;
+      }
+      .result {
+        margin-top: 1.5rem;
+        padding: 1.5rem;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        text-align: center;
+        border: 1px dashed #ccc;
+      }
+      .result-value {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: #e74c3c;
+        margin-top: 0.5rem;
+        transition: color 0.3s;
+        display: flex;
+        align-items: baseline;
+        justify-content: center;
+        gap: 8px;
+      }
+      .percent-change {
+        font-size: 0.5em;
+        font-weight: normal;
+      }
+      .header-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+      }
+      .card {
+        border: 1px solid #eee;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+      }
+      .card-title {
+        font-size: 0.875rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>ETF 淨值計算機</h1>
+
+      <div class="header-actions">
+        <select id="etfSelector"></select>
+        <button id="addBtn" style="width: auto; margin-top: 0">新增</button>
+        <button
+          id="deleteBtn"
+          class="btn-danger"
+          style="width: auto; margin-top: 0"
+        >
+          移除
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">基準設定</div>
+        <div class="form-group">
+          <label for="baseIndex">指數點數</label>
+          <input type="number" id="baseIndex" step="any" placeholder="請輸入" />
+        </div>
+        <div class="form-group">
+          <label for="baseNav">ETF 淨值</label>
+          <input type="number" id="baseNav" step="any" placeholder="請輸入" />
+        </div>
+        <button id="saveBaseBtn">儲存此基準</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">目標試算</div>
+        <div class="form-group">
+          <label for="targetIndex">輸入指定點數</label>
+          <input
+            type="number"
+            id="targetIndex"
+            step="any"
+            placeholder="請輸入"
+          />
+        </div>
+
+        <div class="result">
+          預估 ETF 淨值
+          <div class="result-value" id="resultNav">0.00</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let etfs = JSON.parse(localStorage.getItem("etfs")) || [
+        {
+          id: "00671R",
+          name: "00671R (反1)",
+          multiplier: -1,
+          baseIndex: 24780,
+          baseNav: 2.92,
+        },
+      ];
+      let currentEtfId = localStorage.getItem("currentEtfId") || etfs[0].id;
+
+      const selector = document.getElementById("etfSelector");
+      const addBtn = document.getElementById("addBtn");
+      const deleteBtn = document.getElementById("deleteBtn");
+      const baseIndexInput = document.getElementById("baseIndex");
+      const baseNavInput = document.getElementById("baseNav");
+      const saveBaseBtn = document.getElementById("saveBaseBtn");
+      const targetIndexInput = document.getElementById("targetIndex");
+      const resultNav = document.getElementById("resultNav");
+
+      function init() {
+        renderSelector();
+        loadCurrentEtf();
+      }
+
+      function saveState() {
+        localStorage.setItem("etfs", JSON.stringify(etfs));
+        localStorage.setItem("currentEtfId", currentEtfId);
+      }
+
+      function renderSelector() {
+        selector.innerHTML = "";
+        etfs.forEach((etf) => {
+          const option = document.createElement("option");
+          option.value = etf.id;
+          option.textContent = etf.name;
+          if (etf.id === currentEtfId) option.selected = true;
+          selector.appendChild(option);
+        });
+      }
+
+      function loadCurrentEtf() {
+        const etf = etfs.find((e) => e.id === currentEtfId) || etfs[0];
+        baseIndexInput.value = etf.baseIndex || "";
+        baseNavInput.value = etf.baseNav || "";
+        targetIndexInput.value = "";
+        resultNav.innerHTML = "0.00";
+        resultNav.style.color = "#333";
+        calculate();
+      }
+
+      function calculate() {
+        const etf = etfs.find((e) => e.id === currentEtfId);
+        const baseIndex = parseFloat(baseIndexInput.value);
+        const baseNav = parseFloat(baseNavInput.value);
+        const targetIndex = parseFloat(targetIndexInput.value);
+
+        if (baseIndex && baseNav && targetIndex && etf) {
+          const returnRate = (targetIndex - baseIndex) / baseIndex;
+          const percentChange = returnRate * etf.multiplier * 100;
+          const estimatedNav = baseNav * (1 + returnRate * etf.multiplier);
+
+          const sign = percentChange > 0 ? "+" : "";
+          resultNav.innerHTML = `${estimatedNav.toFixed(
+            2
+          )} <span class="percent-change">(${sign}${percentChange.toFixed(
+            2
+          )}%)</span>`;
+
+          if (percentChange > 0) {
+            resultNav.style.color = "#e74c3c";
+          } else if (percentChange < 0) {
+            resultNav.style.color = "#2ecc71";
+          } else {
+            resultNav.style.color = "#333";
+          }
+        } else {
+          resultNav.innerHTML = "0.00";
+          resultNav.style.color = "#333";
+        }
+      }
+
+      selector.addEventListener("change", (e) => {
+        currentEtfId = e.target.value;
+        saveState();
+        loadCurrentEtf();
+      });
+
+      saveBaseBtn.addEventListener("click", () => {
+        const etfIndex = etfs.findIndex((e) => e.id === currentEtfId);
+        if (etfIndex !== -1) {
+          etfs[etfIndex].baseIndex = parseFloat(baseIndexInput.value);
+          etfs[etfIndex].baseNav = parseFloat(baseNavInput.value);
+          saveState();
+          alert("基準已儲存，往後皆會以此數值計算");
+          calculate();
+        }
+      });
+
+      targetIndexInput.addEventListener("input", calculate);
+
+      addBtn.addEventListener("click", () => {
+        const name = prompt("請輸入 ETF 名稱");
+        if (!name) return;
+        const multiplierStr = prompt(
+          "請輸入此 ETF 的追蹤倍數（正2輸入 2，反1輸入 -1，原型輸入 1）",
+          "1"
+        );
+        const multiplier = parseFloat(multiplierStr);
+
+        if (name && !isNaN(multiplier)) {
+          const newEtf = {
+            id: Date.now().toString(),
+            name: `${name} (${multiplier > 0 ? "正" : "反"}${Math.abs(
+              multiplier
+            )})`,
+            multiplier: multiplier,
+            baseIndex: "",
+            baseNav: "",
+          };
+          etfs.push(newEtf);
+          currentEtfId = newEtf.id;
+          saveState();
+          renderSelector();
+          loadCurrentEtf();
+        } else {
+          alert("輸入無效，請確認倍數為數字格式");
+        }
+      });
+
+      deleteBtn.addEventListener("click", () => {
+        if (etfs.length <= 1) {
+          alert("至少需要保留一個 ETF 基準！");
+          return;
+        }
+        const currentEtf = etfs.find((e) => e.id === currentEtfId);
+        if (confirm(`確定要移除「${currentEtf.name}」嗎？`)) {
+          etfs = etfs.filter((e) => e.id !== currentEtfId);
+          currentEtfId = etfs[0].id;
+          saveState();
+          renderSelector();
+          loadCurrentEtf();
+        }
+      });
+
+      init();
+    </script>
+  </body>
+</html>
