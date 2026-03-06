@@ -230,9 +230,12 @@
           const percentChange = returnRate * etf.multiplier * 100;
           const estimatedNav = baseNav * (1 + returnRate * etf.multiplier);
 
+          // 判斷淨值是否小於 10，小於 10 顯示四位小數，否則顯示兩位小數
+          const decimalPlaces = estimatedNav < 10 ? 4 : 2;
+
           const sign = percentChange > 0 ? "+" : "";
           resultNav.innerHTML = `${estimatedNav.toFixed(
-            2
+            decimalPlaces
           )} <span class="percent-change">(${sign}${percentChange.toFixed(
             2
           )}%)</span>`;
