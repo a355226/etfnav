@@ -3,171 +3,272 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ETF 淨值計算機</title>
+    <title>iNAV Calculator</title>
     <style>
+      :root {
+        --bg-color: #0b0e14;
+        --card-bg: #151a22;
+        --border-color: #2a313e;
+        --text-main: #e2e8f0;
+        --text-muted: #94a3b8;
+        --accent: #3b82f6;
+        --accent-hover: #2563eb;
+        --danger: #ef4444;
+        --up-color: #ef4444;
+        --down-color: #22c55e;
+        --flat-color: #e2e8f0;
+      }
+
       body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
           Helvetica, Arial, sans-serif;
-        background-color: #f4f4f9;
-        color: #333;
+        background-color: var(--bg-color);
+        color: var(--text-main);
         display: flex;
         justify-content: center;
-        padding: 2rem;
+        align-items: center;
+        min-height: 100vh;
         margin: 0;
+        padding: 1.5rem;
+        box-sizing: border-box;
       }
+
       .container {
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        background: var(--card-bg);
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
         padding: 2rem;
         width: 100%;
-        max-width: 400px;
+        max-width: 420px;
       }
+
       h1 {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
+        font-weight: 600;
         margin-top: 0;
         margin-bottom: 1.5rem;
         text-align: center;
-        color: #2c3e50;
+        color: #fff;
       }
+
       .form-group {
-        margin-bottom: 1rem;
+        margin-bottom: 1.25rem;
       }
+
       label {
         display: block;
-        font-size: 0.875rem;
+        font-size: 0.8rem;
         margin-bottom: 0.5rem;
-        color: #555;
+        color: var(--text-muted);
+        text-transform: uppercase;
       }
+
       input,
       select {
         width: 100%;
-        padding: 0.75rem;
-        border: 1px solid #ddd;
+        padding: 0.875rem 1rem;
+        background-color: #0b0e14;
+        border: 1px solid var(--border-color);
+        color: #fff;
         border-radius: 8px;
         box-sizing: border-box;
         font-size: 1rem;
-        transition: border-color 0.2s;
       }
+
       input:focus,
       select:focus {
         outline: none;
-        border-color: #3498db;
+        border-color: var(--accent);
       }
+
+      .input-group {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .input-group input {
+        flex: 1;
+      }
+
+      .btn-select {
+        width: auto;
+        background-color: #1e293b;
+        cursor: pointer;
+        color: #e2e8f0;
+      }
+
       button {
         width: 100%;
-        padding: 0.75rem;
-        background-color: #3498db;
+        padding: 0.875rem;
+        background-color: var(--accent);
         color: #fff;
         border: none;
         border-radius: 8px;
-        font-size: 1rem;
+        font-size: 0.95rem;
+        font-weight: 600;
         cursor: pointer;
-        transition: background-color 0.2s;
         margin-top: 0.5rem;
       }
+
       button:hover {
-        background-color: #2980b9;
+        background-color: var(--accent-hover);
       }
+      button:disabled {
+        background-color: #475569;
+        cursor: not-allowed;
+      }
+
       .btn-danger {
-        background-color: #e74c3c;
+        background-color: transparent;
+        border: 1px solid var(--danger);
+        color: var(--danger);
       }
-      .btn-danger:hover {
-        background-color: #c0392b;
-      }
+
       .result {
         margin-top: 1.5rem;
         padding: 1.5rem;
-        background-color: #f8f9fa;
-        border-radius: 8px;
+        background: linear-gradient(145deg, #1e293b, #0f172a);
+        border-radius: 12px;
         text-align: center;
-        border: 1px dashed #ccc;
+        border: 1px solid var(--border-color);
       }
+
+      .result-label {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-bottom: 0.5rem;
+      }
+
       .result-value {
-        font-size: 1.8rem;
-        font-weight: bold;
-        color: #e74c3c;
-        margin-top: 0.5rem;
-        transition: color 0.3s;
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--flat-color);
+        margin-top: 0.25rem;
         display: flex;
         align-items: baseline;
         justify-content: center;
-        gap: 8px;
+        gap: 10px;
       }
+
       .percent-change {
-        font-size: 0.5em;
-        font-weight: normal;
+        font-size: 1rem;
+        font-weight: 500;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.05);
       }
+
       .header-actions {
         display: flex;
         gap: 0.5rem;
-        margin-bottom: 1.5rem;
+        margin-bottom: 2rem;
       }
+
       .card {
-        border: 1px solid #eee;
-        padding: 1rem;
-        border-radius: 8px;
+        background: #1e2532;
+        border: 1px solid var(--border-color);
+        padding: 1.25rem;
+        border-radius: 12px;
         margin-bottom: 1.5rem;
       }
+
       .card-title {
-        font-size: 0.875rem;
-        font-weight: bold;
-        margin-bottom: 1rem;
-        color: #7f8c8d;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+        font-size: 0.75rem;
+        font-weight: 700;
+        margin-bottom: 1.25rem;
+        color: var(--text-muted);
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 0.5rem;
+      }
+
+      .is-up {
+        color: var(--up-color);
+      }
+      .is-up .percent-change {
+        background: rgba(239, 68, 68, 0.1);
+      }
+      .is-down {
+        color: var(--down-color);
+      }
+      .is-down .percent-change {
+        background: rgba(34, 197, 94, 0.1);
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1>ETF 淨值計算機</h1>
+      <h1>ETF 淨值計算器</h1>
 
       <div class="header-actions">
         <select id="etfSelector"></select>
-        <button id="addBtn" style="width: auto; margin-top: 0">新增</button>
+        <button id="addBtn" style="width: 70px; margin-top: 0">新增</button>
         <button
           id="deleteBtn"
           class="btn-danger"
-          style="width: auto; margin-top: 0"
+          style="width: 70px; margin-top: 0"
         >
           移除
         </button>
       </div>
 
       <div class="card">
-        <div class="card-title">基準設定</div>
+        <div class="card-title">基準設定 (Base)</div>
         <div class="form-group">
           <label for="baseIndex">指數點數</label>
-          <input type="number" id="baseIndex" step="any" placeholder="請輸入" />
+          <input
+            type="number"
+            id="baseIndex"
+            step="any"
+            placeholder="請輸入基準點數"
+          />
         </div>
         <div class="form-group">
           <label for="baseNav">ETF 淨值</label>
-          <input type="number" id="baseNav" step="any" placeholder="請輸入" />
+          <input
+            type="number"
+            id="baseNav"
+            step="any"
+            placeholder="請輸入對應淨值"
+          />
         </div>
-        <button id="saveBaseBtn">儲存此基準</button>
+        <button id="saveBaseBtn">儲存基準</button>
       </div>
 
       <div class="card">
-        <div class="card-title">目標試算</div>
+        <div class="card-title">淨值試算</div>
         <div class="form-group">
-          <label for="targetIndex">輸入指定點數</label>
-          <input
-            type="number"
-            id="targetIndex"
-            step="any"
-            placeholder="請輸入"
-          />
+          <label for="targetIndex">輸入或自動帶入</label>
+          <div class="input-group">
+            <input
+              type="number"
+              id="targetIndex"
+              step="any"
+              placeholder="手動輸入或右方帶入"
+            />
+            <select id="quickFetch" class="btn-select">
+              <option value="">自動帶入 ▼</option>
+              <option value="TX">台指期</option>
+              <option value="NQ">那斯達克期貨</option>
+              <option value="ES">標普500期貨</option>
+            </select>
+          </div>
         </div>
 
         <div class="result">
-          預估 ETF 淨值
-          <div class="result-value" id="resultNav">0.00</div>
+          <div class="result-label">預估 ETF 淨值</div>
+          <div class="result-value" id="resultNav">
+            0.00 <span class="percent-change">(0.00%)</span>
+          </div>
         </div>
       </div>
     </div>
 
     <script>
+      // 在這裡貼上您的 Google 試算表發布的 CSV 網址
+      const GOOGLE_SHEET_CSV_URL =
+        "https://docs.google.com/spreadsheets/d/e/2PACX-1vSnYJSfjaXfVeuMEPQZOCrsF7MgXxjApdoP9AFnWlVHq2IrE0-EUO-oRHojhPq5wlIjtdoSUYA7XqsC/pub?output=csv";
+
       let etfs = JSON.parse(localStorage.getItem("etfs")) || [
         {
           id: "00671R",
@@ -175,6 +276,20 @@
           multiplier: -1,
           baseIndex: 24780,
           baseNav: 2.92,
+        },
+        {
+          id: "00632R",
+          name: "00632R (反1)",
+          multiplier: -1,
+          baseIndex: 24000,
+          baseNav: 4.5,
+        },
+        {
+          id: "00675L",
+          name: "00675L (正2)",
+          multiplier: 2,
+          baseIndex: 24000,
+          baseNav: 20.0,
         },
       ];
       let currentEtfId = localStorage.getItem("currentEtfId") || etfs[0].id;
@@ -187,6 +302,7 @@
       const saveBaseBtn = document.getElementById("saveBaseBtn");
       const targetIndexInput = document.getElementById("targetIndex");
       const resultNav = document.getElementById("resultNav");
+      const quickFetch = document.getElementById("quickFetch");
 
       function init() {
         renderSelector();
@@ -214,9 +330,13 @@
         baseIndexInput.value = etf.baseIndex || "";
         baseNavInput.value = etf.baseNav || "";
         targetIndexInput.value = "";
-        resultNav.innerHTML = "0.00";
-        resultNav.style.color = "#333";
+        resetResult();
         calculate();
+      }
+
+      function resetResult() {
+        resultNav.innerHTML = `0.00 <span class="percent-change">(0.00%)</span>`;
+        resultNav.className = "result-value";
       }
 
       function calculate() {
@@ -229,27 +349,20 @@
           const returnRate = (targetIndex - baseIndex) / baseIndex;
           const percentChange = returnRate * etf.multiplier * 100;
           const estimatedNav = baseNav * (1 + returnRate * etf.multiplier);
-
-          // 判斷淨值是否小於 10，小於 10 顯示四位小數，否則顯示兩位小數
           const decimalPlaces = estimatedNav < 10 ? 4 : 2;
-
           const sign = percentChange > 0 ? "+" : "";
+
           resultNav.innerHTML = `${estimatedNav.toFixed(
             decimalPlaces
           )} <span class="percent-change">(${sign}${percentChange.toFixed(
             2
           )}%)</span>`;
 
-          if (percentChange > 0) {
-            resultNav.style.color = "#e74c3c";
-          } else if (percentChange < 0) {
-            resultNav.style.color = "#2ecc71";
-          } else {
-            resultNav.style.color = "#333";
-          }
+          resultNav.className = "result-value";
+          if (percentChange > 0) resultNav.classList.add("is-up");
+          else if (percentChange < 0) resultNav.classList.add("is-down");
         } else {
-          resultNav.innerHTML = "0.00";
-          resultNav.style.color = "#333";
+          resetResult();
         }
       }
 
@@ -265,15 +378,66 @@
           etfs[etfIndex].baseIndex = parseFloat(baseIndexInput.value);
           etfs[etfIndex].baseNav = parseFloat(baseNavInput.value);
           saveState();
-          alert("基準已儲存，往後皆會以此數值計算");
           calculate();
         }
       });
 
       targetIndexInput.addEventListener("input", calculate);
 
+      // 透過 Google 試算表 CSV 取得報價
+      quickFetch.addEventListener("change", async (e) => {
+        const type = e.target.value;
+        if (!type) return;
+
+        if (GOOGLE_SHEET_CSV_URL.includes("請將您的試算表")) {
+          alert("請先在程式碼上方填入您的 Google 試算表 CSV 網址！");
+          e.target.value = "";
+          return;
+        }
+
+        const originalPlaceholder = targetIndexInput.placeholder;
+        targetIndexInput.placeholder = "自試算表同步中...";
+        targetIndexInput.value = "";
+        quickFetch.disabled = true;
+
+        try {
+          const response = await fetch(GOOGLE_SHEET_CSV_URL, {
+            cache: "no-store",
+          });
+          if (!response.ok) throw new Error("無法讀取試算表");
+
+          const csvText = await response.text();
+          const rows = csvText.split("\n");
+
+          let foundPrice = null;
+          for (let row of rows) {
+            const cols = row.split(",");
+            // 確保比對時忽略前後空白字元
+            if (cols.length >= 2 && cols[0].trim() === type) {
+              foundPrice = parseFloat(cols[1].trim());
+              break;
+            }
+          }
+
+          if (foundPrice && !isNaN(foundPrice)) {
+            targetIndexInput.value = foundPrice;
+            calculate();
+          } else {
+            alert(
+              `在試算表中找不到代號「${type}」的數值，請確認 A 欄代號是否完全一致。`
+            );
+          }
+        } catch (error) {
+          alert("讀取失敗，請確認試算表已正確發布為 CSV 且網址無誤。");
+        } finally {
+          targetIndexInput.placeholder = originalPlaceholder;
+          e.target.value = "";
+          quickFetch.disabled = false;
+        }
+      });
+
       addBtn.addEventListener("click", () => {
-        const name = prompt("請輸入 ETF 名稱");
+        const name = prompt("請輸入 ETF 名稱 (例如: 00632R)");
         if (!name) return;
         const multiplierStr = prompt(
           "請輸入此 ETF 的追蹤倍數（正2輸入 2，反1輸入 -1，原型輸入 1）",
@@ -296,16 +460,11 @@
           saveState();
           renderSelector();
           loadCurrentEtf();
-        } else {
-          alert("輸入無效，請確認倍數為數字格式");
         }
       });
 
       deleteBtn.addEventListener("click", () => {
-        if (etfs.length <= 1) {
-          alert("至少需要保留一個 ETF 基準！");
-          return;
-        }
+        if (etfs.length <= 1) return;
         const currentEtf = etfs.find((e) => e.id === currentEtfId);
         if (confirm(`確定要移除「${currentEtf.name}」嗎？`)) {
           etfs = etfs.filter((e) => e.id !== currentEtfId);
