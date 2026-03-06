@@ -96,6 +96,7 @@
         background-color: #1e293b;
         cursor: pointer;
         color: #e2e8f0;
+        transition: opacity 0.2s;
       }
 
       button {
@@ -385,22 +386,36 @@
 
       let tempFetchValue = "";
 
+      // 點擊選單時預先清空數值，確保「再次選擇同一個指數」能觸發 change 事件
+      quickFetch.addEventListener("mousedown", function () {
+        if (this.value !== "") tempFetchValue = this.value;
+        this.value = "";
+      });
+      quickFetch.addEventListener("touchstart", function () {
+        if (this.value !== "") tempFetchValue = this.value;
+        this.value = "";
+      });
       quickFetch.addEventListener("focus", function () {
-        tempFetchValue = this.value;
+        if (this.value !== "") tempFetchValue = this.value;
         this.value = "";
       });
 
+      // 若點開選單後沒有選擇新項目便離開，則還原原本顯示的指數
       quickFetch.addEventListener("blur", function () {
         if (this.value === "") {
           this.value = tempFetchValue;
         }
       });
 
+      // 透過 Google 試算表 CSV 取得報價
       quickFetch.addEventListener("change", async (e) => {
         const type = e.target.value;
-        if (!type) return;
+        if (!type) {
+          e.target.value = tempFetchValue;
+          return;
+        }
 
-        tempFetchValue = type;
+        tempFetchValue = type; // 記錄當前選擇，確保更新後停留在此項
 
         if (GOOGLE_SHEET_CSV_URL.includes("請將您的試算表")) {
           alert("請先在程式碼上方填入您的 Google 試算表 CSV 網址！");
@@ -409,11 +424,15 @@
         }
 
         const originalPlaceholder = targetIndexInput.placeholder;
-        targetIndexInput.placeholder = "同步中...";
-        targetIndexInput.value = "";
-        quickFetch.disabled = true;
+        targetIndexInput.placeholder = "讀取最新報價..."; // 視覺提示
+        targetIndexInput.value = ""; 
+        quickFetch.style.pointerEvents = "none";
+        quickFetch.style.opacity = "0.6";
 
         try {
+          // 強制視覺延遲，確保畫面閃爍更新提示，給予明確的重整回饋感
+          await new Promise((resolve) => setTimeout(resolve, 400));
+
           const fetchUrl = GOOGLE_SHEET_CSV_URL + "&_t=" + new Date().getTime();
           const response = await fetch(fetchUrl, {
             cache: "no-store",
@@ -444,8 +463,9 @@
           alert("讀取失敗，請確認試算表已正確發布為 CSV 且網址無誤。");
         } finally {
           targetIndexInput.placeholder = originalPlaceholder;
-          quickFetch.disabled = false;
-          quickFetch.value = tempFetchValue;
+          quickFetch.style.pointerEvents = "auto";
+          quickFetch.style.opacity = "1";
+          quickFetch.value = tempFetchValue; 
         }
       });
 
