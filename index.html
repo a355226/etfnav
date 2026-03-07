@@ -2,16 +2,19 @@
 <html lang="zh-TW">
   <head>
     <!-- 分頁用 -->
-<link rel="icon" type="image/png" sizes="32x32" href="icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icon.png" />
 
-<!-- iOS 主畫面用 -->
-<link rel="apple-touch-icon" sizes="180x180" href="icon.png">
+    <!-- iOS 主畫面用 -->
+    <link rel="apple-touch-icon" sizes="180x180" href="icon.png" />
 
-<!-- Android PWA -->
-<link rel="manifest" href="manifest.json">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-        <title>ETF淨值計算器</title>
+    <!-- Android PWA -->
+    <link rel="manifest" href="manifest.json" />
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>ETF淨值計算器</title>
     <style>
       :root {
         --bg-color: #0b0e14;
@@ -129,9 +132,13 @@
       }
 
       .btn-danger {
-        background-color: transparent;
-        border: 1px solid var(--danger);
-        color: var(--danger);
+        /* 使用一個柔和的鮭魚紅 (#ff6b6b) */
+        background-color: #fe6e6e;
+        /* 文字改成純白 */
+        color: #ffffff;
+        /* 移除原本的邊框，或者改成跟背景一樣的顏色 */
+        border: none;
+        /* 如果原本有定義 padding，這裡不用寫，它會沿用 */
       }
 
       .result {
@@ -222,7 +229,7 @@
       </div>
 
       <div class="card">
-        <div class="card-title">基準設定 (Base)</div>
+        <div class="card-title">基準設定</div>
         <div class="form-group">
           <label for="baseIndex">指數點數</label>
           <input
@@ -433,7 +440,7 @@
 
         const originalPlaceholder = targetIndexInput.placeholder;
         targetIndexInput.placeholder = "讀取中"; // 視覺提示
-        targetIndexInput.value = ""; 
+        targetIndexInput.value = "";
         quickFetch.style.pointerEvents = "none";
         quickFetch.style.opacity = "0.6";
 
@@ -473,7 +480,7 @@
           targetIndexInput.placeholder = originalPlaceholder;
           quickFetch.style.pointerEvents = "auto";
           quickFetch.style.opacity = "1";
-          quickFetch.value = tempFetchValue; 
+          quickFetch.value = tempFetchValue;
         }
       });
 
