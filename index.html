@@ -116,7 +116,6 @@
         font-weight: 600;
         cursor: pointer;
         margin-top: 0.5rem;
-        /* 增加動畫過渡效果 */
         transition: background-color 0.3s ease, transform 0.1s ease,
           color 0.3s ease;
       }
@@ -125,7 +124,6 @@
         background-color: var(--accent-hover);
       }
 
-      /* 排除已儲存狀態的按鈕 hover，避免顏色衝突 */
       button:disabled:not(.btn-saved) {
         background-color: #475569;
         cursor: not-allowed;
@@ -137,7 +135,6 @@
         border: none;
       }
 
-      /* 儲存成功的狀態效果 */
       .btn-saved {
         background-color: var(--down-color) !important;
         transform: scale(0.98);
@@ -323,6 +320,15 @@
       const GOOGLE_SHEET_CSV_URL =
         "https://docs.google.com/spreadsheets/d/e/2PACX-1vSnYJSfjaXfVeuMEPQZOCrsF7MgXxjApdoP9AFnWlVHq2IrE0-EUO-oRHojhPq5wlIjtdoSUYA7XqsC/pub?output=csv";
 
+      // ETF 對應的自動抓取指數字典
+      const etfIndexMapping = {
+        "00675L": "TX",
+        "00632R": "TX",
+        "00671R": "NQ",
+        "00670L": "NQ",
+        "00647L": "ES",
+      };
+
       let etfs = JSON.parse(localStorage.getItem("etfs")) || [
         {
           id: "00671R",
@@ -331,7 +337,7 @@
           baseIndex: 24780,
           baseNav: 2.92,
         },
-             ];
+      ];
       let currentEtfId = localStorage.getItem("currentEtfId") || etfs[0].id;
 
       const selector = document.getElementById("etfSelector");
@@ -395,6 +401,13 @@
         });
       }
 
+      function getAutoFetchType(etfName) {
+        for (const [key, val] of Object.entries(etfIndexMapping)) {
+          if (etfName.includes(key)) return val;
+        }
+        return null;
+      }
+
       function loadCurrentEtf() {
         const etf = etfs.find((e) => e.id === currentEtfId) || etfs[0];
         baseIndexInput.value = etf.baseIndex || "";
@@ -402,6 +415,14 @@
         targetIndexInput.value = "";
         resetResult();
         calculate();
+
+        // 判斷是否需要自動帶入
+        const mappedIndex = getAutoFetchType(etf.name);
+        if (mappedIndex) {
+          fetchAndCalculate(mappedIndex);
+        } else {
+          quickFetch.value = "";
+        }
       }
 
       function resetResult() {
@@ -450,13 +471,11 @@
           saveState();
           calculate();
 
-          // 按鈕視覺反饋邏輯
           const originalText = saveBaseBtn.textContent;
           saveBaseBtn.textContent = "已儲存";
           saveBaseBtn.classList.add("btn-saved");
           saveBaseBtn.disabled = true;
 
-          // 1.5秒後恢復原狀
           setTimeout(() => {
             saveBaseBtn.textContent = originalText;
             saveBaseBtn.classList.remove("btn-saved");
@@ -488,18 +507,16 @@
         }
       });
 
-      quickFetch.addEventListener("change", async (e) => {
-        const type = e.target.value;
-        if (!type) {
-          e.target.value = tempFetchValue;
-          return;
-        }
+      // 將原本的抓取邏輯獨立成一個非同步函式，以便於不同地方呼叫
+      async function fetchAndCalculate(type) {
+        if (!type) return;
 
         tempFetchValue = type;
+        quickFetch.value = type;
 
         if (GOOGLE_SHEET_CSV_URL.includes("請將您的試算表")) {
           alert("請先在程式碼上方填入您的 Google 試算表 CSV 網址！");
-          e.target.value = "";
+          quickFetch.value = "";
           return;
         }
 
@@ -546,6 +563,15 @@
           quickFetch.style.opacity = "1";
           quickFetch.value = tempFetchValue;
         }
+      }
+
+      quickFetch.addEventListener("change", (e) => {
+        const type = e.target.value;
+        if (!type) {
+          e.target.value = tempFetchValue;
+          return;
+        }
+        fetchAndCalculate(type);
       });
 
       addBtn.addEventListener("click", () => {
