@@ -1,13 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
   <head>
-    <!-- 分頁用 -->
     <link rel="icon" type="image/png" sizes="32x32" href="icon.png" />
 
-    <!-- iOS 主畫面用 -->
     <link rel="apple-touch-icon" sizes="180x180" href="icon.png" />
 
-    <!-- Android PWA -->
     <link rel="manifest" href="manifest.json" />
     <meta charset="UTF-8" />
     <meta
@@ -196,6 +193,9 @@
         color: var(--text-muted);
         border-bottom: 1px solid var(--border-color);
         padding-bottom: 0.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
 
       .is-up {
@@ -209,6 +209,34 @@
       }
       .is-down .percent-change {
         background: rgba(34, 197, 94, 0.1);
+      }
+
+      /* 收合按鈕的樣式 */
+      .toggle-icon {
+        background-color: transparent;
+        color: var(--text-muted);
+        width: auto;
+        padding: 0;
+        margin: 0;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: transform 0.3s ease, color 0.2s;
+      }
+
+      .toggle-icon:hover {
+        background-color: transparent;
+        color: var(--text-main);
+      }
+
+      .toggle-icon.collapsed {
+        transform: rotate(-90deg);
+      }
+
+      .content-hidden {
+        display: none;
       }
     </style>
   </head>
@@ -229,26 +257,32 @@
       </div>
 
       <div class="card">
-        <div class="card-title">基準設定</div>
-        <div class="form-group">
-          <label for="baseIndex">指數點數</label>
-          <input
-            type="number"
-            id="baseIndex"
-            step="any"
-            placeholder="請輸入基準點數"
-          />
+        <div class="card-title">
+          <span>基準設定</span>
+          <button id="toggleBaseSettingsBtn" class="toggle-icon">▼</button>
         </div>
-        <div class="form-group">
-          <label for="baseNav">ETF 淨值</label>
-          <input
-            type="number"
-            id="baseNav"
-            step="any"
-            placeholder="請輸入對應淨值"
-          />
+
+        <div id="baseSettingsContent">
+          <div class="form-group">
+            <label for="baseIndex">指數點數</label>
+            <input
+              type="number"
+              id="baseIndex"
+              step="any"
+              placeholder="請輸入基準點數"
+            />
+          </div>
+          <div class="form-group">
+            <label for="baseNav">ETF 淨值</label>
+            <input
+              type="number"
+              id="baseNav"
+              step="any"
+              placeholder="請輸入對應淨值"
+            />
+          </div>
+          <button id="saveBaseBtn">儲存基準</button>
         </div>
-        <button id="saveBaseBtn">儲存基準</button>
       </div>
 
       <div class="card">
@@ -319,15 +353,45 @@
       const resultNav = document.getElementById("resultNav");
       const quickFetch = document.getElementById("quickFetch");
 
+      const toggleBaseSettingsBtn = document.getElementById(
+        "toggleBaseSettingsBtn"
+      );
+      const baseSettingsContent = document.getElementById(
+        "baseSettingsContent"
+      );
+
+      let isBaseSettingsCollapsed =
+        localStorage.getItem("isBaseSettingsCollapsed") === "true";
+
       function init() {
         renderSelector();
         loadCurrentEtf();
+        applyBaseSettingsCollapseState();
       }
 
       function saveState() {
         localStorage.setItem("etfs", JSON.stringify(etfs));
         localStorage.setItem("currentEtfId", currentEtfId);
       }
+
+      function applyBaseSettingsCollapseState() {
+        if (isBaseSettingsCollapsed) {
+          baseSettingsContent.classList.add("content-hidden");
+          toggleBaseSettingsBtn.classList.add("collapsed");
+        } else {
+          baseSettingsContent.classList.remove("content-hidden");
+          toggleBaseSettingsBtn.classList.remove("collapsed");
+        }
+      }
+
+      toggleBaseSettingsBtn.addEventListener("click", () => {
+        isBaseSettingsCollapsed = !isBaseSettingsCollapsed;
+        localStorage.setItem(
+          "isBaseSettingsCollapsed",
+          isBaseSettingsCollapsed
+        );
+        applyBaseSettingsCollapseState();
+      });
 
       function renderSelector() {
         selector.innerHTML = "";
