@@ -2,9 +2,7 @@
 <html lang="zh-TW">
   <head>
     <link rel="icon" type="image/png" sizes="32x32" href="icon.png" />
-
     <link rel="apple-touch-icon" sizes="180x180" href="icon.png" />
-
     <link rel="manifest" href="manifest.json" />
     <meta charset="UTF-8" />
     <meta
@@ -118,24 +116,32 @@
         font-weight: 600;
         cursor: pointer;
         margin-top: 0.5rem;
+        /* 增加動畫過渡效果 */
+        transition: background-color 0.3s ease, transform 0.1s ease,
+          color 0.3s ease;
       }
 
       button:hover {
         background-color: var(--accent-hover);
       }
-      button:disabled {
+
+      /* 排除已儲存狀態的按鈕 hover，避免顏色衝突 */
+      button:disabled:not(.btn-saved) {
         background-color: #475569;
         cursor: not-allowed;
       }
 
       .btn-danger {
-        /* 使用一個柔和的鮭魚紅 (#ff6b6b) */
         background-color: #fe6e6e;
-        /* 文字改成純白 */
         color: #ffffff;
-        /* 移除原本的邊框，或者改成跟背景一樣的顏色 */
         border: none;
-        /* 如果原本有定義 padding，這裡不用寫，它會沿用 */
+      }
+
+      /* 儲存成功的狀態效果 */
+      .btn-saved {
+        background-color: var(--down-color) !important;
+        transform: scale(0.98);
+        cursor: default !important;
       }
 
       .result {
@@ -211,7 +217,6 @@
         background: rgba(34, 197, 94, 0.1);
       }
 
-      /* 收合按鈕的樣式 */
       .toggle-icon {
         background-color: transparent;
         color: var(--text-muted);
@@ -458,6 +463,19 @@
           etfs[etfIndex].baseNav = parseFloat(baseNavInput.value);
           saveState();
           calculate();
+
+          // 按鈕視覺反饋邏輯
+          const originalText = saveBaseBtn.textContent;
+          saveBaseBtn.textContent = "已儲存";
+          saveBaseBtn.classList.add("btn-saved");
+          saveBaseBtn.disabled = true;
+
+          // 1.5秒後恢復原狀
+          setTimeout(() => {
+            saveBaseBtn.textContent = originalText;
+            saveBaseBtn.classList.remove("btn-saved");
+            saveBaseBtn.disabled = false;
+          }, 1500);
         }
       });
 
@@ -465,7 +483,6 @@
 
       let tempFetchValue = "";
 
-      // 點擊選單時預先清空數值，確保「再次選擇同一個指數」能觸發 change 事件
       quickFetch.addEventListener("mousedown", function () {
         if (this.value !== "") tempFetchValue = this.value;
         this.value = "";
@@ -479,14 +496,12 @@
         this.value = "";
       });
 
-      // 若點開選單後沒有選擇新項目便離開，則還原原本顯示的指數
       quickFetch.addEventListener("blur", function () {
         if (this.value === "") {
           this.value = tempFetchValue;
         }
       });
 
-      // 透過 Google 試算表 CSV 取得報價
       quickFetch.addEventListener("change", async (e) => {
         const type = e.target.value;
         if (!type) {
@@ -494,7 +509,7 @@
           return;
         }
 
-        tempFetchValue = type; // 記錄當前選擇，確保更新後停留在此項
+        tempFetchValue = type;
 
         if (GOOGLE_SHEET_CSV_URL.includes("請將您的試算表")) {
           alert("請先在程式碼上方填入您的 Google 試算表 CSV 網址！");
@@ -503,13 +518,12 @@
         }
 
         const originalPlaceholder = targetIndexInput.placeholder;
-        targetIndexInput.placeholder = "讀取中"; // 視覺提示
+        targetIndexInput.placeholder = "讀取中";
         targetIndexInput.value = "";
         quickFetch.style.pointerEvents = "none";
         quickFetch.style.opacity = "0.6";
 
         try {
-          // 強制視覺延遲，確保畫面閃爍更新提示，給予明確的重整回饋感
           await new Promise((resolve) => setTimeout(resolve, 400));
 
           const fetchUrl = GOOGLE_SHEET_CSV_URL + "&_t=" + new Date().getTime();
